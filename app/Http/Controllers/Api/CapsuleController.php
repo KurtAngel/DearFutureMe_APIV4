@@ -47,13 +47,13 @@ class CapsuleController extends Controller implements HasMiddleware
         }
 
         $capsule->load('images');
-
-            // Map the images to include full URLs
+        
+        // Map the images to include full URLs
         $imagesWithUrls = $capsule->images->map(function ($image) {
             $user = Auth::user();
             return [
                 'id' => $image->id,
-                'image_url' => url($user->profile_pic ? Storage::url($image->image) : null) // Convert relative path to full URL
+                'image_url' => url($user->profile_pic ? Storage::url($image->image) : null)// Convert relative path to full URL
             ];
         });
 
@@ -157,17 +157,22 @@ class CapsuleController extends Controller implements HasMiddleware
             Log::info('No images uploaded.');
         }
 
+        $imagesWithUrls = $capsule->images->map(function ($image) {
+            $user = Auth::user();
+            return [
+                'id' => $image->id,
+                'image_url' => url($user->profile_pic ? Storage::url($image->image) : null)// Convert relative path to full URL
+            ];
+        });
+
         return response()->json([
-            'info' => [
                 'title' => $capsule->title,
                 'message' => $capsule->message,
                 'receiver_email' => $capsule->receiver_email,
                 'scheduled_open_at' => $capsule->scheduled_open_at,
                 'user_id' => $capsule->user_id,
                 'id' => $capsule->id,
-                'images' => $capsule->images // Include images directly in the capsule info
-            ],
-            'draft' => 'Capsule has been moved to draft',
+                'images' => $imagesWithUrls // Include images directly in the capsule info
         ], 200);
         
     }
@@ -199,10 +204,8 @@ class CapsuleController extends Controller implements HasMiddleware
         // Log the capsule before updating
         Log::info('Capsule before update:', $capsule->toArray());
         
-        // Update the capsule with validated data
         $capsule->update(array_filter($validatedData));
         
-        // Optionally, reload the capsule to get updated values
         $capsule->refresh();
         
         return response()->json([

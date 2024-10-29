@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Resources\ReceivedCapsuleResource;
 use App\Models\User;
 use App\Models\Image;
 use Illuminate\Http\Request;
 use App\Models\ReceivedCapsule;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Routing\Controllers\Middleware;
+use App\Http\Resources\ReceivedCapsuleResource;
 use Illuminate\Routing\Controllers\HasMiddleware;
 
 class ReceivedCapsuleController implements HasMiddleware
@@ -53,6 +55,9 @@ class ReceivedCapsuleController implements HasMiddleware
      */
     public function store(Request $request) {
         // Validate incoming request data
+
+        $user = Auth::user();
+        
         $validatedData = $request->validate([
             'title' => 'required|max:50|string',
             'message' => 'required|max:5000|string',
@@ -73,11 +78,8 @@ class ReceivedCapsuleController implements HasMiddleware
             return response()->json(['message' => 'Receiver not found.'], 404);
         }
     
-        // Step 1: Create the received capsule
-        $createdCapsule = ReceivedCapsule::create(array_merge($validatedData, ['user_id' => $receiver->id]));
+        $createdCapsule = ReceivedCapsule::create(array_merge($validatedData, ['user_id' => $user->id]));
 
-    
-        // Step 2: Handle image uploads if images are provided
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $imageFile) {
                 if ($imageFile->isValid()) {
@@ -115,17 +117,39 @@ class ReceivedCapsuleController implements HasMiddleware
             return response()->json(['message' => 'Capsule not found!'], 404);
         }
 
-        $receivedCapsule->load('images');
+        // Eager-load the sender and images relationships
+        $receivedCapsule->load(['images', 'sender']);
+
+        // Map the images to include full URLs
+        $imagesWithUrls = $receivedCapsule->images->map(function ($image) {
+            $user = Auth::user();
+            return [
+                'id' => $image->id,
+                'image_url' => url($user->profile_pic ? Storage::url($image->image) : null) // Convert relative path to full URL
+            ];
+        });
+
+        $sender = $receivedCapsule->sender;
 
         return response()->json([
-            'id'=> $receivedCapsule['id'],
-            'title'=> $receivedCapsule['title'],
-            'message'=> $receivedCapsule['message'],
-            'receiver_email'=> $receivedCapsule['receiver_email'],
-            'scheduled_open_at'=> $receivedCapsule['scheduled_open_at'],
-            'images' => $receivedCapsule->images
+            'id' => $receivedCapsule->id,
+            'title' => $receivedCapsule->title,
+            'message' => $receivedCapsule->message,
+            'receiver_email' => $receivedCapsule->receiver_email,
+            'scheduled_open_at' => $receivedCapsule->scheduled_open_at,
+            'images' => $imagesWithUrls,
+
+            'sender' => [
+                // 'name' => $receivedCapsule->sender->name,
+                // 'email' => $receivedCapsule->sender->email,
+                // 'profile_pic_url' => $receivedCapsule->sender->profile_pic ? Storage::url($receivedCapsule->sender->profile_pic) : null,
+                'name' => $sender ? $sender->name : null,
+                'email' => $sender ? $sender->email : null,
+                'profile_pic_url' => $sender && $sender->profile_pic ? Storage::url($sender->profile_pic) : null,
+            ]
         ], 200);
     }
+
 
     /**
      * Show the form for editing the specified resource.
@@ -146,19 +170,24 @@ class ReceivedCapsuleController implements HasMiddleware
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id) {
-
-        // Gate::authorize('modify', $id);
-
-        $capsule = ReceivedCapsule::find($id);
+    public function destroy(ReceivedCapsule $receivedCapsule) {
         
-        if (!$capsule) {
+        foreach ($receivedCapsule->images as $image) {
+            // Delete the image from storage
+            if (Storage::disk('public')->exists($image->image)) {
+                Storage::disk('public')->delete($image->image);
+            }
+    
+            // Delete the image record from the database
+            $image->delete();
+        }
+        if (!$receivedCapsule) {
             return response()->json(['message' => 'Capsule not found'], 404);
         }
     
             // Delete the specific capsule
-            $capsule->delete();
+            $receivedCapsule->delete();
     
-            return response()->json(['message' => 'Capsule deleted successfully'], 200);
+            return response()->json(['message' => 'Capsule deleted!'], 200);
     }
 }

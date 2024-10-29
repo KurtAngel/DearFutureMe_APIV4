@@ -32,6 +32,11 @@ class ReceivedCapsule extends Model
         return $this->hasMany(Image::class, 'capsule_id'); // Adjust if using a different foreign key
     }
 
+    public function sender()
+    {
+        return $this->belongsTo(User::class, 'user_id'); // Adjust 'user_id' to 'sender_id' if needed
+    }
+
     protected static function booted()
     {
         static::deleting(function ($capsule) {
