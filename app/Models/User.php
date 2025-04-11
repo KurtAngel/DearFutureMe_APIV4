@@ -26,22 +26,25 @@ class User extends Authenticatable
         'profile_pic'
     ];
 
-    public function capsules() {
+    public function capsules()
+    {
         return $this->hasMany(Capsule::class);
     }
 
-    public function receivedCapsule() {
+    public function receivedCapsule()
+    {
         return $this->hasMany(ReceivedCapsule::class);
     }
 
-    public function images() {
+    public function images()
+    {
         return $this->hasManyThrough(
-        related: Image::class, 
-        through: ReceivedCapsule::class,
-        firstKey: 'user_id',
-        secondKey: 'id',
-        localKey: 'id'
-    );
+            related: Image::class,
+            through: ReceivedCapsule::class,
+            firstKey: 'user_id',
+            secondKey: 'id',
+            localKey: 'id'
+        );
     }
     /**
      * The attributes that should be hidden for serialization.

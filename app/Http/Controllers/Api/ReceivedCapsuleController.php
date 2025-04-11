@@ -37,9 +37,9 @@ class ReceivedCapsuleController implements HasMiddleware
          if ($capsules->isEmpty()) {
              return response()->json(['message' => 'No capsules found!'], 404);
          } else {
-             return response()->json([
-                 'data' => $capsules
-             ], 200);
+             return response()->json(
+                 $capsules
+             , 200);
          }
      }
      
@@ -140,9 +140,6 @@ class ReceivedCapsuleController implements HasMiddleware
             'images' => $imagesWithUrls,
 
             'sender' => [
-                // 'name' => $receivedCapsule->sender->name,
-                // 'email' => $receivedCapsule->sender->email,
-                // 'profile_pic_url' => $receivedCapsule->sender->profile_pic ? Storage::url($receivedCapsule->sender->profile_pic) : null,
                 'name' => $sender ? $sender->name : null,
                 'email' => $sender ? $sender->email : null,
                 'profile_pic_url' => $sender && $sender->profile_pic ? Storage::url($sender->profile_pic) : null,

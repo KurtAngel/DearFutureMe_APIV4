@@ -18,7 +18,6 @@ class Capsule extends Model
         'message',
         'receiver_email',
         'scheduled_open_at'
-            
     ];
 
     public function user() {

@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\ReceivedCapsule;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\UserController;
@@ -28,8 +27,10 @@ Route::middleware('api')->group(function () {
     // Route::put('/capsules/{id}', [CapsuleController::class, 'update']);
 });
 
-Route::middleware('auth:sanctum')->post('/profile/upload', [ProfileController::class, 'uploadProfilePic']);
-Route::middleware('auth:sanctum')->get('/profile/show', [ProfileController::class, 'showProfile']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware('auth:sanctum')->post('/profile/upload', [ProfileController::class, 'uploadProfilePic']);
+    Route::middleware('auth:sanctum')->get('/profile/show', [ProfileController::class, 'showProfile']);
+});
 
 Route::apiResource('profile', ProfileController::class);
 

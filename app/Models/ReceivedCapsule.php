@@ -10,7 +10,7 @@ class ReceivedCapsule extends Model
     use HasFactory;
 
     protected $table = 'receivedcapsules'; // Specify the correct table name
-    
+
     protected $fillable = [
         'user_id',
         'title',
@@ -18,12 +18,14 @@ class ReceivedCapsule extends Model
         'receiver_email',
         'scheduled_open_at'
     ];
-    
-    public function user() {
+
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
-    public function images() { // Change to images to reflect the relationship correctly
+    public function images()
+    { // Change to images to reflect the relationship correctly
         return $this->morphMany(Image::class, 'capsule');
     }
 
@@ -37,10 +39,10 @@ class ReceivedCapsule extends Model
         return $this->belongsTo(User::class, 'user_id'); // Adjust 'user_id' to 'sender_id' if needed
     }
 
+    // Delete all associated images when a capsule is deleted
     protected static function booted()
     {
         static::deleting(function ($capsule) {
-            // Delete all associated images when a capsule is deleted
             $capsule->images()->delete();
         });
     }

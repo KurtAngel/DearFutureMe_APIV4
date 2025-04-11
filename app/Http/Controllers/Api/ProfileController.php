@@ -38,9 +38,10 @@ class ProfileController extends Controller
             }
             
             // Store the new profile picture
-            $path = $request->file('profile_pic')->store('profile_pics', 'public');
+            $path = $request->file('profile_pic')->store('/profile_pics', 'public');
             
             $user->profile_pic = $path;
+            
             $user->save();
         }
 

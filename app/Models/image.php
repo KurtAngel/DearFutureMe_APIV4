@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,7 +17,7 @@ class Image extends Model // Ensure the class name is singular and capitalized
     protected $hidden = [
         "created_at",
         "updated_at"
-    ] ;
+    ];
 
     public function capsule()
     {
@@ -28,4 +29,3 @@ class Image extends Model // Ensure the class name is singular and capitalized
         return $this->morphTo();
     }
 }
-

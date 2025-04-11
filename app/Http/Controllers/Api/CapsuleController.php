@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Gate;
 use App\Http\Resources\CapsuleResource;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Routing\Controllers\Middleware;
+
 use Illuminate\Routing\Controllers\HasMiddleware;
 
 class CapsuleController extends Controller implements HasMiddleware
@@ -174,17 +175,13 @@ class CapsuleController extends Controller implements HasMiddleware
                 'id' => $capsule->id,
                 'images' => $imagesWithUrls // Include images directly in the capsule info
         ], 200);
-        
     }
-    
     
     public function update(Request $request, Capsule $capsule) {
         // Log the ID of the capsule being updated
         Log::info('Looking for Capsule ID:', ['id' => $capsule->id]);
     
         Gate::authorize('modify', $capsule);
-        
-
         
         // Validate the request data (if validation is enabled)
         try {
